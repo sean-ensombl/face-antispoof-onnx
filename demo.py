@@ -17,7 +17,7 @@ from src.inference import (
 from src.detection import load_detector, detect
 
 MODELS_DIR = Path(__file__).parent / "models"
-DETECTOR_MODEL = MODELS_DIR / "detector.onnx"
+DETECTOR_MODEL = MODELS_DIR / "detector_quantized.onnx"
 LIVENESS_MODEL = MODELS_DIR / "best_model_quantized.onnx"
 
 
