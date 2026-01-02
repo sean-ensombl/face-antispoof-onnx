@@ -1,6 +1,6 @@
 # Data Preparation
 
-This documentation explains the preprocessing decisions in `scripts/prepare_data.py`.
+Preprocessing details for `scripts/prepare_data.py`.
 
 ---
 
@@ -20,13 +20,13 @@ For each image:
 
 ## Why Expand the Bounding Box?
 
-Face detectors give you tight bounding boxes. Just the face, sometimes cutting off the forehead or chin. For anti-spoofing, context is needed:
+Face detectors give tight boxes. Just the face, sometimes cutting off forehead or chin. Anti-spoofing needs context:
 
-- **Skin texture around the face** helps distinguish real skin from printed paper
-- **Hair and ears** often show printing artifacts in spoof attacks
-- **The boundary between face and background** is where you see edges of printed photos or phone bezels
+- **Skin texture around face** - real skin vs printed paper
+- **Hair and ears** - often show printing artifacts
+- **Face-background boundary** - edges of printed photos or phone bezels
 
-The default expansion is **1.5×**, meaning the crop is taken 50% larger than the detected face on each side. This provides the needed context without including too much irrelevant background.
+Default expansion is **1.5x** (50% larger on each side).
 
 ![Bbox](../assets/docs/bbox.png)
 
@@ -34,49 +34,39 @@ The default expansion is **1.5×**, meaning the crop is taken 50% larger than th
 
 ## Why Square Crops?
 
-The model expects 128×128 square inputs. Cropping a rectangle and stretching it distorts facial proportions. Distortion patterns differ between real faces and spoofs. The goal is to avoid the model learning "stretched faces are spoofs."
+128x128 square input. Stretching rectangles distorts proportions, and distortion patterns differ between real/spoof. Don't want the model learning "stretched = spoof."
 
-The approach:
-1. Take the longer side of the bounding box
-2. Make a square crop centered on the face
-3. Resize that square to 128×128
-
-No distortion, consistent aspect ratio.
+Approach:
+1. Take longer side of bbox
+2. Make square crop centered on face
+3. Resize to 128x128
 
 ---
 
 ## The Padding Problem
 
-Sometimes the expanded crop goes outside the image bounds. This happens when:
-- The face is near the edge of the frame
-- The expansion factor is large
-- The original image is tightly cropped
+Sometimes expanded crop goes outside image bounds (face near edge, large expansion, tight original image).
 
-Three options are available:
-1. **Skip the image**: loses training data
-2. **Pad with black**: creates harsh artificial edges
-3. **Pad with reflected pixels**: extends the image naturally
+Options:
+1. **Skip image** - loses data
+2. **Black padding** - harsh artificial edges
+3. **Reflected pixels** - natural extension
 
-Option 3 is used: `cv2.BORDER_REFLECT_101`.
+Using option 3: `cv2.BORDER_REFLECT_101`.
 
 ### Why BORDER_REFLECT_101?
 
-There are several reflection modes:
+| Mode | Result |
+|:-----|:-------|
+| `BORDER_REFLECT` | `abcdef` -> `fedcba|abcdef|fedcba` |
+| `BORDER_REFLECT_101` | `abcdef` -> `gfedcb|abcdef|edcbag` |
+| `BORDER_REPLICATE` | `abcdef` -> `aaaaaa|abcdef|ffffff` |
 
-| Mode | What it does |
-|:-----|:-------------|
-| `BORDER_REFLECT` | `abcdef` → `fedcba│abcdef│fedcba` |
-| `BORDER_REFLECT_101` | `abcdef` → `gfedcb│abcdef│edcbag` |
-| `BORDER_REPLICATE` | `abcdef` → `aaaaaa│abcdef│ffffff` |
+`BORDER_REFLECT_101` = smoothest. No edge pixel duplication, no visible seam.
 
-`BORDER_REFLECT_101` (also called "reflect without edge duplication") gives the smoothest result. The edge pixel isn't repeated, so you don't get a visible seam.
-
-In practice:
-- **Black padding** creates edges the model might learn as "spoof indicators" (they're not)
-- **Replicate** creates visible bands of repeated color
-- **Reflect 101** looks like a natural extension of the image
-
-Avoids introducing artifacts that the model might wrongly learn as spoof indicators.
+- Black padding = edges model might wrongly learn as "spoof"
+- Replicate = visible color bands
+- Reflect 101 = natural extension
 
 ![Padding comparison](../assets/docs/padding_comparison.png)
 
@@ -88,23 +78,19 @@ Avoids introducing artifacts that the model might wrongly learn as spoof indicat
 interp = cv2.INTER_LANCZOS4 if crop_size < target_size else cv2.INTER_AREA
 ```
 
-### Upscaling (small crop → 128×128)
+### Upscaling (small crop -> 128x128)
 
-When the face is small and scaling up, **LANCZOS4** is used.
+Small face, scaling up: **LANCZOS4**.
 
-LANCZOS is a high-quality interpolation that preserves edges and fine details. It uses a windowed sinc function to sample surrounding pixels. Sharp results without the blocky look of nearest-neighbor or the blur of bilinear.
-
-Small faces often come from subjects far from the camera. Better to preserve texture than blur it away.
+High-quality interpolation using windowed sinc function. Sharp results, no blocky artifacts. Small faces = far from camera, so preserve texture.
 
 ![Upscale comparison](../assets/docs/upscale_comparison.png)
 
-### Downscaling (large crop → 128×128)
+### Downscaling (large crop -> 128x128)
 
-When the face is large and scaling down, **AREA** is used.
+Large face, scaling down: **AREA**.
 
-AREA interpolation (also called "pixel area relation") averages the pixels that map to each output pixel. Proper downsampling that considers all source pixels, not just a few sample points.
-
-Naive methods (bilinear, bicubic) can miss fine details or create aliasing. AREA gives a true average, keeping texture information intact.
+Averages pixels that map to each output pixel. Proper downsampling that considers all source pixels. Bilinear/bicubic can miss details or create aliasing. AREA = true average, keeps texture.
 
 ![Downscale comparison](../assets/docs/downscale_comparison.png)
 
@@ -123,17 +109,17 @@ After processing:
 
 ```
 {crop_dir}/
-├── train/
-│   └── {same structure as original dataset}
-├── test/
-│   └── {same structure as original dataset}
-└── metas/
-    └── labels/
-        ├── train_label.json
-        └── test_label.json
++-- train/
+|   +-- {same structure as original}
++-- test/
+|   +-- {same structure as original}
++-- metas/
+    +-- labels/
+        +-- train_label.json
+        +-- test_label.json
 ```
 
-The script preserves the original folder structure. If your source has `train/subject_001/image.jpg`, the output will have the same path under `{crop_dir}`. The label JSON files are copied to `metas/labels/` so the training script knows where to find them.
+Original folder structure preserved. Label JSONs copied to `metas/labels/`.
 
 ---
 

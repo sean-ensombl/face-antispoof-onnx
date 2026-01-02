@@ -13,8 +13,6 @@
 
 A lightweight face anti-spoofing model that distinguishes real faces from spoofing attempts (printed photos, screen displays, etc.). Used in [**SURI**](https://github.com/johnraivenolazo/suri), an AI attendance system.
 
-This repo contains the training pipeline, pre-trained weights, and ONNX export. Standalone repository for training and optimization.
-
 ---
 
 ## Model
@@ -28,50 +26,18 @@ The trained model is a tiny classifier that predicts two classes: **Real** or **
 
 ### Model Performance
 
-Both models maintain high precision (>99%) at operational thresholds with minimal accuracy loss from quantization:
-
 | Metric | Model | Quantized |
 |:-------|:-----:|:---------:|
 | **Model Size** | 1.82 MB | **600 KB** |
-| **Overall Accuracy** | 97.80% | 97.80% |
-| Real Accuracy | 98.16% | 98.14% |
-| Spoof Accuracy | 97.50% | 97.52% |
-| **ROC-AUC** | **0.9978** | **0.9978** |
-| **Average Precision** | **0.9981** | **0.9981** |
+| **Overall Accuracy** | **98.20%** | **98.20%** |
+| Real Accuracy | 97.58% | 97.55% |
+| Spoof Accuracy | 98.73% | 98.73% |
+| **ROC-AUC** | **0.9984** | **0.9984** |
+| **Average Precision** | **0.9987** | **0.9987** |
 
-> Metrics validated on CelebA Spoof benchmark (70k+ samples). Quantization maintains accuracy with minimal loss.
+> Tested on CelebA Spoof (70k+ samples). Quantization has no accuracy drop.
 
-#### Model Metrics
-
-<div align="center">
-  <img src="assets/metrics/conf_matrix.png" width="49%" alt="Confusion Matrix" />
-  <img src="assets/metrics/roc_curve.png" width="49%" alt="ROC Curve" />
-</div>
-
-<div align="center">
-  <img src="assets/metrics/pr_curve.png" width="60%" alt="Precision-Recall Curve" />
-</div>
-
-<div align="center">
-  <img src="assets/metrics/confidence_dist.png" width="60%" alt="Confidence Distribution" />
-</div>
-
-#### Quantized Metrics
-
-<div align="center">
-  <img src="assets/metrics_quant/conf_matrix.png" width="49%" alt="Confusion Matrix" />
-  <img src="assets/metrics_quant/roc_curve.png" width="49%" alt="ROC Curve" />
-</div>
-
-<div align="center">
-  <img src="assets/metrics_quant/pr_curve.png" width="60%" alt="Precision-Recall Curve" />
-</div>
-
-<div align="center">
-  <img src="assets/metrics_quant/confidence_dist.png" width="60%" alt="Confidence Distribution" />
-</div>
-
-> The confidence distribution shows strong separation between classes, with minimal overlap in the 0.4–0.6 range. The model maintains high precision (>99%) at operational thresholds, minimizing false biometric access.
+**[Detailed metrics →](docs/METRICS.md)** | **[Previous results →](docs/PREVIOUS_RESULTS.md)**
 
 ---
 
@@ -235,47 +201,24 @@ python scripts/quantize_onnx.py models/best_model.pth --input_size 128
 
 ## Repo Structure
 
-The codebase is organized into modular components for clarity and maintainability:
-
 ```
+├── demo.py              # Inference demo
 ├── src/
-│   ├── detection/          # Face detection module
-│   │   └── face.py         # Face detector (load_detector, detect)
-│   │
-│   ├── inference/          # Model inference module
-│   │   ├── loader.py       # Model loading (load_model)
-│   │   ├── inference.py    # Inference functions (infer, process_with_logits)
-│   │   ├── preprocess.py   # Image preprocessing (crop, preprocess, preprocess_batch)
-│   │   └── system.py       # System information (CPU/GPU info)
-│   │
-│   ├── minifasv2/          # MiniFAS training code
-│   │   ├── config.py       # Training config
-│   │   ├── data.py         # Dataset loading
-│   │   ├── main.py         # Trainer class
-│   │   └── model.py        # MiniFAS architecture
-│   │
-│   └── mobilenetv4/         # Legacy (kept for reference)
-│
-├── scripts/
-│   ├── prepare_data.py        # Dataset preparation
-│   ├── train.py               # Training entrypoint
-│   ├── prepare_best_model.py  # Extract clean model weights
-│   ├── export_onnx.py         # Regular ONNX export
-│   └── quantize_onnx.py       # Quantized ONNX export
-│
-├── docs/                   # Technical documentation
-├── models/                 # Pre-trained models
-│   ├── best_model.pth              # Clean PyTorch model
-│   ├── best_model.onnx             # Regular ONNX
-│   └── best_model_quantized.onnx  # Quantized ONNX
-└── demo.py                 # Inference demo
+│   ├── detection/       # Face detection
+│   ├── inference/       # Model inference
+│   ├── minifasv2/       # Training code
+│   └── mobilenetv4/     # Legacy
+├── scripts/             # Data prep, training, export
+├── models/              # Pre-trained models
+├── docs/                # Documentation
+└── assets/              # Demo assets & results
 ```
 
 ---
 
 ## Limitations
 
-The model performs best with well-lit, frontal faces and proper preprocessing. For detailed information on limitations, edge cases, and best practices, see [**Limitations & Notes**](docs/LIMITATIONS.md).
+Works best with well-lit, frontal faces. See [**Limitations & Notes**](docs/LIMITATIONS.md) for edge cases and tips.
 
 ---
 

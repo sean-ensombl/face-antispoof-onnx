@@ -1,28 +1,28 @@
 # Limitations & Technical Notes
 
-Anti-spoofing is texture-sensitive, so input quality directly affects output reliability. Observations from testing and deployment:
+Anti-spoofing depends on texture analysis, so input quality matters. Notes from testing:
 
 ## 1. Environmental Constraints
 
-* **Lighting matters:** The model analyzes fine textures (Fourier Transform patterns). In extreme low-light or harsh backlighting, these textures get lost in noise or silhouettes, which can cause misclassification.
-* **What works well:** Evenly lit faces perform best. Setups where the camera faces a bright window or strong backlight tend to struggle.
+* **Lighting matters:** Fourier Transform patterns need decent lighting. Low-light or harsh backlight = noise, which causes misclassification.
+* **What works:** Even lighting on the face. Bright windows behind the subject = bad.
 
 ## 2. Input & Preprocessing Requirements
 
-The model was trained on a specific preprocessing pipeline, so it expects inputs that match that pipeline.
+Trained on a specific pipeline, so inputs need to match.
 
-* **The 1.5x padding:** The preprocessing uses 1.5x padding (`--bbox_expansion_factor 1.5`) when cropping faces. Tight crops (Just eyes/Forehead) remove the context needed to tell a real head apart from a flat screen or paper. The padding provides the model enough "head space" to see the 3D structure.
-* **Resolution:** Input gets resized to 128×128, but the source face should be at least 64×64. If you upscale a tiny, blurry face, you'll lose the spoofing artifacts (like screen pixels) that the model looks for.
+* **1.5x padding:** Tight crops (just eyes/forehead) lose context. The padding gives enough "head space" to see 3D structure vs flat screens/paper.
+* **Resolution:** Resizes to 128x128, but source face should be 64x64 minimum. Upscaling tiny blurry faces loses the spoofing artifacts (screen pixels, print dots).
 
 ## 3. Pose & Occlusion
 
-* **Angles:** Works best with frontal views (±30° yaw/pitch). Profile views or extreme "looking down" angles drop performance noticeably.
-* **Obstructions:** Heavy occlusions—masks, hands covering the face, or large-frame glasses with thick reflections—can mess with the texture-based feature extraction.
+* **Angles:** Best with frontal views (+/-30 deg yaw/pitch). Profile views drop accuracy.
+* **Obstructions:** Masks, hands over face, thick glasses with reflections mess with texture extraction.
 
 ## 4. Known Edge Cases
 
-* **Attack types:** Handles printed photos and digital screens well. The model hasn't been explicitly trained for 3D silicone masks or high-end prosthetic attacks, so those might slip through.
-* **Motion blur:** Fast movement during capture can "smear" the textures. For video streams, using a temporal filter helps (e.g., require 3-5 consecutive "Real" frames before accepting) to avoid false positives from a single blurry frame.
+* **Attack types:** Good at printed photos and screens. Not trained on 3D silicone masks or prosthetics.
+* **Motion blur:** Fast movement smears textures. For video, use temporal filtering (require 3-5 consecutive "Real" frames).
 
 ## 5. Security Tuning
 
