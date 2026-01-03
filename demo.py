@@ -1,3 +1,5 @@
+"""Real-time face anti-spoofing demo (webcam or image)."""
+
 import cv2
 import numpy as np
 import sys

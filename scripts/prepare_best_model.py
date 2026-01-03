@@ -1,3 +1,5 @@
+"""Extract inference-ready weights from training checkpoint."""
+
 import torch
 from collections import OrderedDict
 import os

@@ -1,9 +1,12 @@
+"""ONNX model loader with provider auto-detection."""
+
 import onnxruntime as ort
 from typing import Tuple, Optional
 from pathlib import Path
 
 
 def load_model(model_path: str) -> Tuple[Optional[ort.InferenceSession], Optional[str]]:
+    """Load ONNX model. Return (session, input_name) or (None, None) on failure."""
     if not Path(model_path).exists():
         return None, None
 

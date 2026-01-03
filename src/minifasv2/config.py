@@ -1,3 +1,5 @@
+"""Training and inference configuration."""
+
 import os
 import torch
 

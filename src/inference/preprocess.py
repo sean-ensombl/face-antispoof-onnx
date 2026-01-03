@@ -1,9 +1,12 @@
+"""Face crop preprocessing for model input."""
+
 import cv2
 import numpy as np
 from typing import List
 
 
 def preprocess(img: np.ndarray, model_img_size: int) -> np.ndarray:
+    """Resize with letterboxing, normalize to [0,1], convert to CHW."""
     new_size = model_img_size
     old_size = img.shape[:2]
 
@@ -28,6 +31,7 @@ def preprocess(img: np.ndarray, model_img_size: int) -> np.ndarray:
 
 
 def preprocess_batch(face_crops: List[np.ndarray], model_img_size: int) -> np.ndarray:
+    """Preprocess multiple face crops into a batched array."""
     if not face_crops:
         raise ValueError("face_crops list cannot be empty")
 
@@ -41,6 +45,7 @@ def preprocess_batch(face_crops: List[np.ndarray], model_img_size: int) -> np.nd
 
 
 def crop(img: np.ndarray, bbox: tuple, bbox_expansion_factor: float) -> np.ndarray:
+    """Extract square face crop from bbox with expansion. Pad edges with reflection."""
     original_height, original_width = img.shape[:2]
     x, y, w, h = bbox
 

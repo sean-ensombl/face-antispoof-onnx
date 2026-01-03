@@ -1,3 +1,5 @@
+"""Crop and resize face images from bbox annotations."""
+
 from __future__ import annotations
 
 import argparse

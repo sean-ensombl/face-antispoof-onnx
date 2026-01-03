@@ -1,9 +1,13 @@
+"""MiniFASNet V2 SE architecture with Fourier Transform auxiliary head."""
+
 import torch
 from torch import nn
 import torch.nn.functional as F
 
 
 class MultiFTNet(nn.Module):
+    """MiniFAS classifier with optional FT branch for training."""
+
     def __init__(
         self, num_channels=3, num_classes=2, embedding_size=128, conv6_kernel=(5, 5)
     ):

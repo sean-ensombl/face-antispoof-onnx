@@ -1,3 +1,5 @@
+"""Face detection."""
+
 import cv2
 import numpy as np
 from typing import List, Dict
@@ -11,6 +13,7 @@ def load_detector(
     nms_threshold: float = 0.3,
     top_k: int = 5000,
 ):
+    """Load face detector."""
     if not Path(model_path).exists():
         return None
 
@@ -30,6 +33,7 @@ def load_detector(
 def detect(
     image: np.ndarray, detector, min_face_size: int = 60, margin: int = 5
 ) -> List[Dict]:
+    """Detect faces. Filter by min size and edge margin. Return list of {bbox, confidence}."""
     if detector is None or image is None:
         return []
 

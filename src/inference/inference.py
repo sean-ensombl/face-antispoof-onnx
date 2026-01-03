@@ -1,3 +1,5 @@
+"""ONNX inference for face anti-spoofing."""
+
 import numpy as np
 import onnxruntime as ort
 import sys
@@ -6,6 +8,7 @@ from src.inference.preprocess import preprocess_batch
 
 
 def process_with_logits(raw_logits: np.ndarray, threshold: float) -> Dict:
+    """Convert raw logits to real/spoof classification."""
     real_logit = float(raw_logits[0])
     spoof_logit = float(raw_logits[1])
     logit_diff = real_logit - spoof_logit
@@ -28,6 +31,7 @@ def infer(
     input_name: str,
     model_img_size: int,
 ) -> List[np.ndarray]:
+    """Run batch inference on cropped face images. Return list of logits per face."""
     if not face_crops or ort_session is None:
         return []
 

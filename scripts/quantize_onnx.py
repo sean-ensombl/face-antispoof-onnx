@@ -1,3 +1,5 @@
+"""Export and quantize PyTorch checkpoint to INT8 ONNX."""
+
 import torch
 import onnx
 import onnxsim

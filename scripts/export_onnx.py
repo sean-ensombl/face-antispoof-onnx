@@ -1,3 +1,5 @@
+"""Export PyTorch checkpoint to ONNX format."""
+
 import torch
 import onnx
 import onnxsim

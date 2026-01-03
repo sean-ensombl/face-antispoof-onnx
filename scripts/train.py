@@ -1,3 +1,5 @@
+"""Train MiniFASNet V2 SE for face anti-spoofing (2-class: Real, Spoof)."""
+
 from src.minifasv2.config import TrainConfig
 from src.minifasv2.main import Trainer
 import argparse
